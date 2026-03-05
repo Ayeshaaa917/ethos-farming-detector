@@ -172,3 +172,100 @@ export default function Home() {
       <style>{`*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}body{background:#030712;color:#e2e8f0;font-family:'IBM Plex Mono',monospace;min-height:100vh}::-webkit-scrollbar{width:4px}::-webkit-scrollbar-thumb{background:#1e3a5f;border-radius:2px}@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}.pulse{animation:pulse 1.2s ease-in-out infinite}`}</style>
       <header style={{ background: "#050d1a", borderBottom: "1px solid #0d1e30", padding: "16px 24px", display: "flex", alignItems: "center", gap: 14 }}>
         <div style={{ width: 36, height: 36, background: "linear-gradient(135deg,#4ade80,#22d3ee)", borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, fontWeight: 900, color: "#030712" }}>◈</div>
+        <div>
+          <div style={{ fontSize: 16, fontWeight: 700, color: "#f1f5f9", letterSpacing: 1 }}>ETHOS FARMING DETECTOR</div>
+          <div style={{ fontSize: 10, color: "#1e3a5f", letterSpacing: 3, textTransform: "uppercase" }}>Review-ring · Triangle · Vouch-collusion analysis</div>
+        </div>
+        <div style={{ marginLeft: "auto", textAlign: "right", fontSize: 10, color: "#0d2035" }}>api.ethos.network<br /><span style={{ color: "#4ade8044" }}>server-side ✓</span></div>
+      </header>
+      <main style={{ maxWidth: 980, margin: "0 auto", padding: "28px 18px" }}>
+        <div style={{ display: "flex", gap: 8, background: "#070d1a", border: "1px solid #0d1e30", borderRadius: 8, padding: "6px 8px", marginBottom: 10 }}>
+          <input style={{ flex: 1, background: "transparent", border: "none", outline: "none", color: "#4ade80", fontFamily: "inherit", fontSize: 14, padding: "6px 8px" }} placeholder="Enter profileId, 0x address, or @twitter username..." value={query} onChange={(e) => setQuery(e.target.value)} onKeyDown={(e) => e.key === "Enter" && analyze()} />
+          <button onClick={analyze} disabled={loading} style={{ background: loading ? "#111c2a" : "#4ade80", color: loading ? "#1e3a5f" : "#030712", border: "none", borderRadius: 6, padding: "8px 22px", fontFamily: "inherit", fontSize: 13, fontWeight: 700, cursor: loading ? "not-allowed" : "pointer", letterSpacing: 1 }}>
+            {loading ? <span className="pulse">SCANNING…</span> : "ANALYZE →"}
+          </button>
+        </div>
+        <div style={{ fontSize: 11, color: "#1e3a5f", marginBottom: 24 }}>Examples: <span style={{ color: "#2a5a40" }}>1234</span> · <span style={{ color: "#2a5a40" }}>VitalikButerin</span> · <span style={{ color: "#2a5a40" }}>@OyewoleOyelade1</span></div>
+        {error && <div style={{ background: "#0a0404", border: "1px solid #ef444433", borderRadius: 8, padding: "14px 18px", marginBottom: 14, color: "#ef4444", fontSize: 13 }}>❌ {error}</div>}
+        {log.length > 0 && (
+          <div style={{ background: "#070d1a", border: "1px solid #0d1e30", borderRadius: 8, padding: "14px 18px", marginBottom: 14 }}>
+            <div style={{ fontSize: 10, color: "#2a4060", letterSpacing: 3, textTransform: "uppercase", marginBottom: 10 }}>Scan Log</div>
+            <div ref={logRef} style={{ background: "#030712", border: "1px solid #0d1e30", borderRadius: 6, padding: "10px 12px", maxHeight: 180, overflowY: "auto", fontSize: 11 }}>
+              {log.map((l, i) => <LogLine key={i} {...l} />)}
+              {loading && <span className="pulse" style={{ color: "#4ade80" }}>▌</span>}
+            </div>
+          </div>
+        )}
+        {result && (
+          <>
+            <div style={{ background: "#070d1a", border: "1px solid #1a3050", borderRadius: 8, padding: "16px 18px", marginBottom: 14, display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 12 }}>
+              <div>
+                <div style={{ fontSize: 18, fontWeight: 700, color: "#f1f5f9" }}>{result.displayName}</div>
+                <div style={{ fontSize: 11, color: "#2a4a6a", marginTop: 3 }}>profileId: {result.profileId} · Score: {result.user.score ?? "N/A"}</div>
+              </div>
+              <div style={{ textAlign: "right" }}>
+                <div style={{ fontSize: 10, color: "#1a3050", letterSpacing: 2, textTransform: "uppercase", marginBottom: 5 }}>Farming Risk</div>
+                <RiskBadge level={result.riskLevel} />
+                <div style={{ fontSize: 11, color: "#1a3050", marginTop: 4 }}>{result.riskScore}/100</div>
+              </div>
+            </div>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 10, marginBottom: 14 }}>
+              {[["Reviews Given", result.stats.rGiven, "#4ade80"], ["Reviews Received", result.stats.rReceived, "#4ade80"], ["Vouches Given", result.stats.vGiven, "#22d3ee"], ["Vouches Received", result.stats.vReceived, "#22d3ee"]].map(([l, v, c]) => (
+                <div key={l} style={{ background: "#060b18", border: "1px solid #0d1e30", borderRadius: 6, padding: "12px 14px" }}>
+                  <div style={{ fontSize: 10, color: "#1a3050", letterSpacing: 2, textTransform: "uppercase" }}>{l}</div>
+                  <div style={{ fontSize: 26, color: c, fontWeight: 700, marginTop: 4 }}>{v}</div>
+                </div>
+              ))}
+            </div>
+            <div style={{ display: "grid", gridTemplateColumns: result.graph.nodes.length > 1 ? "1fr 300px" : "1fr", gap: 14, alignItems: "start" }}>
+              <div>
+                <Section title="Review-for-Review Pairs" count={result.mutualReviews.length} countColor="#f59e0b" accent={result.mutualReviews.length ? "#f59e0b22" : undefined}>
+                  {result.mutualReviews.length === 0 ? <Empty>None detected.</Empty> : result.mutualReviews.map((m, i) => (
+                    <Row key={i} tag="MUTUAL" tagColor="#f59e0b">
+                      <div style={{ fontSize: 13, color: "#c0d0e0" }}>↔ {m.withName} <span style={{ color: "#1e3a5f" }}>#{m.with}</span></div>
+                      <div style={{ fontSize: 11, color: "#1e3a5f", marginTop: 2 }}>You: <span style={{ color: sc(m.myScore) }}>{sl(m.myScore)}</span> · Them: <span style={{ color: sc(m.theirScore) }}>{sl(m.theirScore)}</span></div>
+                    </Row>
+                  ))}
+                </Section>
+                <Section title="Triangle Patterns A→B→C→A" count={result.triangles.length} countColor="#ef4444" accent={result.triangles.length ? "#ef444422" : undefined}>
+                  {result.triangles.length === 0 ? <Empty>None detected.</Empty> : result.triangles.map((t, i) => (
+                    <Row key={i} tag="△ RING" tagColor="#ef4444">
+                      <div style={{ fontSize: 13, color: "#c0d0e0" }}>#{t.a} <span style={{ color: "#ef4444" }}>→</span> #{t.b} <span style={{ color: "#ef4444" }}>→</span> #{t.c} <span style={{ color: "#ef4444" }}>→</span> #{t.a}</div>
+                    </Row>
+                  ))}
+                </Section>
+                <Section title="Mutual Vouch Rings" count={result.mutualVouchers.length} countColor="#a78bfa" accent={result.mutualVouchers.length ? "#a78bfa22" : undefined}>
+                  {result.mutualVouchers.length === 0 ? <Empty>None detected.</Empty> : result.mutualVouchers.slice(0, 12).map((id, i) => (
+                    <Row key={i} tag="VOUCH" tagColor="#a78bfa"><div style={{ fontSize: 13, color: "#c0d0e0" }}>↔ profileId <span style={{ color: "#a78bfa" }}>#{id}</span></div></Row>
+                  ))}
+                </Section>
+              </div>
+              {result.graph.nodes.length > 1 && (
+                <div style={{ background: "#070d1a", border: "1px solid #0d1e30", borderRadius: 8, padding: "16px 18px" }}>
+                  <div style={{ fontSize: 10, color: "#2a4060", letterSpacing: 3, textTransform: "uppercase", marginBottom: 12 }}>Relationship Graph</div>
+                  <NetworkGraph nodes={result.graph.nodes} edges={result.graph.edges} center={result.profileId} />
+                  <div style={{ fontSize: 10, color: "#0d2035", marginTop: 8, lineHeight: 2 }}><span style={{ color: "#f59e0b" }}>━</span> mutual · <span style={{ color: "#4ade8040" }}>╌</span> one-way</div>
+                </div>
+              )}
+            </div>
+            <div style={{ background: "#070d1a", border: `1px solid ${{ CRITICAL: "#ef4444", HIGH: "#f97316", MEDIUM: "#f59e0b", LOW: "#4ade80", CLEAN: "#22d3ee" }[result.riskLevel]}44`, borderRadius: 8, padding: "16px 18px", marginTop: 4 }}>
+              <div style={{ fontSize: 10, color: "#2a4060", letterSpacing: 3, textTransform: "uppercase", marginBottom: 12 }}>Verdict</div>
+              <div style={{ display: "flex", alignItems: "center", gap: 14, flexWrap: "wrap" }}>
+                <RiskBadge level={result.riskLevel} />
+                <div style={{ fontSize: 13, color: "#4a6a88" }}>{rd[result.riskLevel]}</div>
+              </div>
+              <div style={{ fontSize: 10, color: "#0d2035", marginTop: 14, borderTop: "1px solid #0d1e30", paddingTop: 10 }}>Scoring: triangles ×50 | mutual reviews ×30 | mutual vouches ×20 · Probabilistic, not legal proof.</div>
+            </div>
+          </>
+        )}
+        {!result && !loading && log.length === 0 && (
+          <div style={{ textAlign: "center", padding: "80px 20px" }}>
+            <div style={{ fontSize: 56, marginBottom: 16, color: "#0d2035" }}>◈</div>
+            <div style={{ fontSize: 13, letterSpacing: 3, textTransform: "uppercase", color: "#0d2035" }}>Enter any Ethos profile to begin</div>
+            <div style={{ fontSize: 11, marginTop: 8, color: "#07121e" }}>Detects review-for-review · triangle rings · vouch collusion</div>
+          </div>
+        )}
+      </main>
+    </>
+  );
+}
