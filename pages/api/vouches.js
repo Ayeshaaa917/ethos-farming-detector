@@ -13,32 +13,3 @@ export default async function handler(req, res) {
     return res.status(500).json({ error: e.message });
   }
 }
-```
-3. Commit it
-
----
-
-## Step 6 — Create `pages/index.js`
-
-1. Name: `pages/index.js`
-2. Go back to my previous message and paste the big `pages/index.js` code block
-3. Commit it
-
----
-
-## Step 7 — Redeploy on Vercel
-
-Once all files are added, go to Vercel → your project → **Deployments** → click **"..."** → **"Redeploy"** ✅
-
-After each file you create, your repo should look like this at the end:
-```
-lib/ethos.js         ✅ already there
-pages/_app.js        ← adding now
-pages/index.js       ← adding now
-pages/api/resolve.js    ← adding now
-pages/api/reviews.js    ← adding now
-pages/api/reviews-by.js ← adding now
-pages/api/vouches.js    ← adding now
-package.json         ✅ already there
-next.config.js       ✅ already there
-vercel.json          ✅ already there
